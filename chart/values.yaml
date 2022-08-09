@@ -5,10 +5,13 @@
 replicaCount: 1
 
 image:
-  repository: nginx
-  pullPolicy: IfNotPresent
+  repository: us-east4-docker.pkg.dev/federato/schema-registry-service/schema-registry-service-staging
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: 'latest'
+
+presyncjob:
+  enabled: true
 
 imagePullSecrets: []
 nameOverride: ""
@@ -90,7 +93,7 @@ redisHost: 192.168.0.4
 
 redisPort: 6379
 
-assetsUrl: localhost??
+assetsUrl: http://schema-registry-service?
 
 asyncSchemaUpdates: false
 
