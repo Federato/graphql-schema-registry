@@ -3,7 +3,7 @@ name: "Publish docker image to staging registry"
 on:
   push:
     branches:
-      - trunk
+      - master
     tags-ignore:
       - '**'
 
