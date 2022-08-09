@@ -1,0 +1,94 @@
+name: "Release Docker and Helm Build to GAR"
+
+on:
+  push:
+    tags:
+      - '**.**.**'
+
+# Environment variables available to all jobs and steps in this workflow
+#  GKE_KEY: ${{ secrets.GKE_KEY }}
+env:
+  GITHUB_SHA: ${{ github.sha }}
+  GITHUB_REF: ${{ github.ref }}
+  LOCATION: us-east4
+  PROJECT_ID: federato
+  REPOSITORY: schema-registry-service
+  IMAGE: schema-registry-service
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, and Publish Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login to GAR
+        uses: docker/login-action@v1
+        with:
+          registry: us-east4-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GAR_JSON_KEY }}
+
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
+      # Configure docker to use the gcloud command-line tool as a credential helper
+      - run: |
+          # Set up docker to authenticate
+          # via gcloud command-line tool.
+          gcloud auth configure-docker us-east4-docker.pkg.dev
+
+      # Build the Docker image 
+      - name: Build
+        run: |
+          export TAG=${{ steps.get_version.outputs.VERSION }}
+          echo $TAG
+          docker build -t "$LOCATION"-docker.pkg.dev/"$PROJECT_ID"/"$REPOSITORY"/"$IMAGE":"$TAG" \
+            --build-arg GITHUB_SHA="$GITHUB_SHA" \
+            --build-arg GITHUB_REF="$GITHUB_REF" .
+
+      # Push the Docker image to Google Container Registry
+      - name: Publish Image
+        run: |
+          export TAG=${{ steps.get_version.outputs.VERSION }}
+          echo $TAG
+          docker push "$LOCATION"-docker.pkg.dev/"$PROJECT_ID"/"$REPOSITORY"/"$IMAGE":"$TAG"
+          docker tag "$LOCATION"-docker.pkg.dev/"$PROJECT_ID"/"$REPOSITORY"/"$IMAGE":"$TAG" "$LOCATION"-docker.pkg.dev/"$PROJECT_ID"/"$REPOSITORY"/"$IMAGE":latest
+          docker push "$LOCATION"-docker.pkg.dev/"$PROJECT_ID"/"$REPOSITORY"/"$IMAGE":latest
+
+
+  build-push-helm-chart:
+    needs: [setup-build-publish-deploy]
+    name: Push Helm Chart
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: '${{ secrets.GAR_JSON_KEY }}'
+
+    - name: Get the version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
+    - name: Install Helm
+      run: ./scripts/install_helm.sh
+
+    - name: Ls
+      run: |
+        find .
+        echo ${{ steps.get_version.outputs.VERSION }}
+
+    - name: Package Helm Charts
+      env:
+        GCLOUD_SERVICE_KEY: ${{ secrets.GAR_JSON_KEY }}
+      run: |
+        export TAG=${{ steps.get_version.outputs.VERSION }}
+        echo $TAG
+        ./scripts/helm_save_push.sh $TAG
