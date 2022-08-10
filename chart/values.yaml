@@ -77,11 +77,9 @@ ingress:
 
 # Registry Env Variables
 
-dbHost: gql-schema-registry-db
+dbHost: localhost
 
-dbUsername: root
-
-dbSecret: root
+dbUsername: federato
 
 dbPort: 3306
 
