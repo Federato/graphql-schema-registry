@@ -93,7 +93,7 @@ redisHost: 192.168.0.4
 
 redisPort: 6379
 
-assetsUrl: http://schema-registry-service?
+assetsUrl: http://schema-registry-service
 
 asyncSchemaUpdates: false
 
