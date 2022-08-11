@@ -9,4 +9,4 @@ echo "Packaging chart"
 helm package chart
 
 echo "Pushing chart"
-helm gcs push gateway-service-${TAG}.tgz federato 
+helm gcs push schema-registry-service-${TAG}.tgz federato 

@@ -13,4 +13,4 @@ helm version
 
 cd ./chart
 
-helm upgrade --set image.tag=latest gateway-service  . --install --timeout 10m --namespace federato-apps
+helm upgrade --set image.tag=latest schema-registry-service  . --install --timeout 10m --namespace federato-apps
