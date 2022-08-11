@@ -24,20 +24,21 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: ""
+  name: "schema-registry-service-acct"
 
-podAnnotations: {}
+podAnnotations:
+  'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true'
 
 podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  capabilities:
+    drop:
+      - all
+  readOnlyRootFilesystem: true
 
 service:
   type: ClusterIP
@@ -91,6 +92,7 @@ redisHost: 192.168.0.4
 
 redisPort: 6379
 
+# Not sure for this
 assetsUrl: http://schema-registry-service
 
 asyncSchemaUpdates: false
