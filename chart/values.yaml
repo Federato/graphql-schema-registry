@@ -4,7 +4,7 @@
 
 replicaCount: 1
 
-image:
+image: 
   repository: pipedrive/graphql-schema-registry
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
@@ -93,7 +93,7 @@ redisHost: 192.168.0.4
 redisPort: 6379
 
 # Not sure for this
-assetsUrl: http://schema-registry-service
+assetsUrl: https://staging.federato.ai/schema-registry-api
 
 asyncSchemaUpdates: false
 
