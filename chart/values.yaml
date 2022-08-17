@@ -93,7 +93,7 @@ redisHost: 192.168.0.4
 redisPort: 6379
 
 # Not sure for this
-assetsUrl: https://staging.federato.ai/schema-registry-api
+# assetsUrl: https://staging.federato.ai/schema-registry-api
 
 asyncSchemaUpdates: false
 
