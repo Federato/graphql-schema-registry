@@ -71,6 +71,7 @@ affinity: {}
 
 ingress:
   host: staging.federato.ai
+  enabled: true
   annotations:
     'nginx.ingress.kubernetes.io/enable-cors': 'true'
     'nginx.ingress.kubernetes.io/cors-allow-origin': 'http://*.federato.ai,https://*.federato.ai'
@@ -78,7 +79,7 @@ ingress:
 
 # Registry Env Variables
 
-dbHost: localhost
+dbHost: mysql
 
 dbUsername: federato
 
