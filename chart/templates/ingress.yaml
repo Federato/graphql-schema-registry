@@ -8,7 +8,7 @@ metadata:
     kubernetes.io/ingress.class: 'nginx'
     ingress.kubernetes.io/use-regex: 'true'
     nginx.ingress.kubernetes.io/proxy-body-size: '50m'
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
   {{- if .Values.ingress.annotations }}
 {{ toYaml .Values.ingress.annotations | indent 4}}
   {{- end }}
@@ -19,7 +19,7 @@ spec:
       http:
         paths:
           - path: /schema-registry-api/(.*)
-            pathType: Exact
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: schema-registry-service
