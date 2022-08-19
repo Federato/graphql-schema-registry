@@ -61,6 +61,8 @@ spec:
             value: {{ .Values.assetsUrl | quote}}
           - name: ASYNC_SCHEMA_UPDATES
             value: {{ .Values.asyncSchemaUpdates | quote}}
+          - name: NODE_ENV
+            value: {{ .Values.nodeEnv | quote}}
           livenessProbe:
             httpGet:
               path: /

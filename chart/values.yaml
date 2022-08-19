@@ -97,3 +97,4 @@ assetsUrl: https://staging.federato.ai/schema-registry-api
 
 asyncSchemaUpdates: false
 
+nodeEnv: production
