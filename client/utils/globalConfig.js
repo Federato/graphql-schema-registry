@@ -48,7 +48,7 @@ class StandaloneConfig extends GlobalConfig {
 	}
 
 	get graphqlPath() {
-		return 'schema-registry-api/graphql';
+		return '/schema-registry-api/graphql';
 	}
 
 	get env() {
