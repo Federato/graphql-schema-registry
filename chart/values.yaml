@@ -5,10 +5,10 @@
 replicaCount: 1
 
 image: 
-  repository: pipedrive/graphql-schema-registry
+  repository: us-east4-docker.pkg.dev/federato/schema-registry-service/schema-registry-service
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: '4.0.0'
+  tag: 'latest'
 
 presyncjob:
   enabled: true
