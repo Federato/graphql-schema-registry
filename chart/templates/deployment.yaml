@@ -45,8 +45,8 @@ spec:
           - name: DB_SECRET
             valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
-                  key: mysql-password
+                  name: {{ .Values.dbSecretName }}
+                  key: {{ .Values.dbSecretKey }}
           - name: DB_PORT
             value: {{ .Values.dbPort | quote}}
           - name: DB_NAME
