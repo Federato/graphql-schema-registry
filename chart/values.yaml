@@ -83,6 +83,10 @@ dbHost: schema-registry-service-mysql
 
 dbUsername: federato
 
+dbSecretName: schema-registry-mysql
+
+dbSecretKey: mysql-password
+
 dbPort: 3306
 
 dbName: schema-registry
