@@ -8,88 +8,53 @@ on:
       - '**'
 
 env:
-  PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # personal access token created by github
-  UPDATE_VALUES_REPO: application-deployments
   GITHUB_SHA: ${{ github.sha }}
   GITHUB_REF: ${{ github.ref }}
   LOCATION: us-east4
-  CHART_DIR: "./chart"
   PROJECT_ID: federato
   REPOSITORY: schema-registry-service
   IMAGE: schema-registry-service-staging
 
 jobs:
-  setup-build-publish-deploy:
+  setup-build-push:
     name: Setup, Build, and Publish Image
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'Bumped version to')"
     steps:
-
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Login to GAR
-      uses: docker/login-action@v1
-      with:
-        registry: us-east4-docker.pkg.dev
-        username: _json_key
-        password: ${{ secrets.GAR_JSON_KEY }}
-
-    # Configure docker to use the gcloud command-line tool as a credential helper
-    - name: Authenticate Docker Images
-      run: |
-          # Set up docker to authenticate
-          # via gcloud command-line tool.
-          gcloud auth configure-docker us-east4-docker.pkg.dev
-
-    - name: Set Tag
-      run: |
-        export TAG=$(echo $GITHUB_SHA | cut -c1-6)
-        echo "TAG=$TAG" >> $GITHUB_ENV
-
-    # Build the Docker image
-    - name: Build
-      run: |
-        docker build -t "$LOCATION"-docker.pkg.dev/"$PROJECT_ID"/"$REPOSITORY"/"$IMAGE":"$TAG" \
-          --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" .
-
-    # Push the Docker image to Google Container Registry
-    - name: Publish Image
-      run: |
-        docker push "$LOCATION"-docker.pkg.dev/"$PROJECT_ID"/"$REPOSITORY"/"$IMAGE":"$TAG"
-        docker tag "$LOCATION"-docker.pkg.dev/"$PROJECT_ID"/"$REPOSITORY"/"$IMAGE":"$TAG" "$LOCATION"-docker.pkg.dev/"$PROJECT_ID"/"$REPOSITORY"/"$IMAGE":latest
-        docker push "$LOCATION"-docker.pkg.dev/"$PROJECT_ID"/"$REPOSITORY"/"$IMAGE":latest
-
-  # trigger-image-tag-update:
-  #   needs: [setup-build-publish-deploy]
-  #   runs-on: ubuntu-latest
-  #   steps:
-
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
-
-  #     - name: Set Envvars
-  #       run: |
-  #         export IMAGE_TAG=$(echo $GITHUB_SHA | cut -c1-6)
-  #         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-  #         echo "EVENT_TYPE=update-chart" >> $GITHUB_ENV
-  #         echo "GH_REPOSITORY=$UPDATE_VALUES_REPO" >> $GITHUB_ENV
-          
-  #         echo $IMAGE_TAG
-  #         echo $EVENT_TYPE
-
-  #     - name: Setup python
-  #       uses: actions/setup-python@v2
-  #       with:
-  #         python-version: 3.8 #install  the python needed
-
-  #     - name: Install pip dependencies
-  #       run: |
-  #         python -m pip install --upgrade pip
-  #         pip install requests
-  #         pip install ruamel.yaml
-
-  #     - name: Run python script
-  #       run: |
-  #         python scripts/trigger_event.py
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Download Private GitHub Actions
+        uses: ./.github/actions/download-private-actions
+        with:
+          appId: ${{ secrets.ACTIONS_APP_ID }}
+          appKey: ${{ secrets.ACTIONS_APP_KEY }}
+      - name: Build and Push Docker Image
+        uses: ./.github/actions/downloaded/build-and-push-docker-image
+        with:
+          garJsonKey: ${{ secrets.GAR_JSON_KEY }}
+          image: ${{ env.IMAGE }}
+          repository: ${{ env.REPOSITORY }}
+          useStagingTagging: "true"
+  deploy-to-staging:
+    name: Deploy schema-registry-service to Staging
+    needs: [setup-build-push]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Set TAG Environment Variable
+        run: |
+          export TAG=$(echo ${{ github.sha }} | cut -c1-6)
+          echo "TAG=$TAG" >> $GITHUB_ENV
+      - name: Download Private GitHub Actions
+        uses: ./.github/actions/download-private-actions
+        with:
+          appId: ${{ secrets.ACTIONS_APP_ID }}
+          appKey: ${{ secrets.ACTIONS_APP_KEY }}
+      - name: Update Staging Helm Image
+        uses: ./.github/actions/downloaded/update-helm-image
+        with:
+          deploymentsAppId: ${{ secrets.APP_DEPLOYMENTS_APP_ID }}
+          deploymentsAppKey: ${{ secrets.APP_DEPLOYMENTS_APP_KEY }}
+          newImageTag: ${{ env.TAG }}
+          service: ${{ env.REPOSITORY }}

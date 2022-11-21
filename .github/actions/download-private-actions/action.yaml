@@ -1,0 +1,26 @@
+name: Download Private Actions
+description: Updates a given Helm configuration's Docker image tag to the image tagged as "latest" in GAR
+author: 'Federato'
+inputs:
+  appId:
+    description: ""
+    required: true
+  appKey:
+    description: ""
+    required: true
+runs:
+  using: "composite"
+  steps:
+  - name: Generate GitHub Actions Token
+    id: actions_token
+    uses: tibdex/github-app-token@v1
+    with:
+      app_id: ${{ inputs.appId }}
+      private_key: ${{ inputs.appKey }}
+      repository: federato/github-actions
+  - name: Checkout Private Actions Monorepo
+    uses: actions/checkout@v3
+    with:
+      repository: federato/github-actions
+      token: ${{ steps.actions_token.outputs.token }}
+      path: ./.github/actions/downloaded
